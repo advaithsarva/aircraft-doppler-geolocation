@@ -84,3 +84,11 @@ python benchmarks/run_validation.py --output outputs/validation
 [data/dependency plan](docs/DATA_AND_DEPENDENCIES.md) · [validation protocol](docs/VALIDATION.md).
 
 MIT license © 2026 Sarva Advaith Narayana. Data licenses are separate from the software license.
+
+## Windows: C:\Projects
+
+See [Windows installation](docs/WINDOWS.md) to save this project under
+`C:\Projects\aircraft-doppler-geolocation` and run `scripts\setup-windows.ps1`.
+No PowerShell virtual-environment activation is required. Input/output paths in search
+configurations resolve relative to the configuration file; split tracks can be selected
+by the segment IDs listed in ingestion diagnostics.

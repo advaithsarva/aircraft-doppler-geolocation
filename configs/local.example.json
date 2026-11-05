@@ -1,7 +1,7 @@
 {
   "frame": {"latitude": 51.5, "longitude": -0.1, "height_m": 0},
-  "tracks": "data/authorized_tracks.parquet",
-  "annotations": "data/annotations.json",
+  "tracks": "../data/authorized_tracks.parquet",
+  "annotations": "../data/annotations.json",
   "flight_ids": ["selected-flight"],
   "ingestion": {
     "bbox": [-0.5, 51.2, 0.3, 51.8],
@@ -13,5 +13,5 @@
   },
   "area": {"xmin": -1000, "xmax": 1000, "ymin": -1000, "ymax": 1000, "authorized": false},
   "search": {"coarse_step_m": 500, "fine_step_m": 50, "offsets_s": [0, 1, 2], "max_evaluations": 10000},
-  "output": "outputs/local-result.json"
+  "output": "../outputs/local-result.json"
 }

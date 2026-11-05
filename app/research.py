@@ -138,7 +138,8 @@ elif mode == "Audio annotation":
 else:
     st.write(
         "Run a JSON configuration against local canonical CSV/Parquet and annotation files. "
-        "Paths resolve on the host running this app. See configs/local.example.json."
+        "Paths resolve relative to the configuration file on this host. "
+        "See configs/local.example.json."
     )
     config_path = st.text_input("Local configuration path", "configs/local.example.json")
     if st.button("Search authorized area"):

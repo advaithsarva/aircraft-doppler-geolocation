@@ -8,6 +8,7 @@ import polars as pl
 from scipy.spatial import cKDTree
 
 from doppler_geo.physics.model import Trajectory
+from doppler_geo.validation import finite_scalar, positive_integer, spatial_bbox, utc_datetime
 
 REQUIRED = {"flight_id", "aircraft_id", "timestamp", "latitude", "longitude", "altitude_m"}
 
@@ -31,6 +32,10 @@ def load_tracks(
     with an explicit, documented offset or pre-process with a proper geoid model.
     Optional metadata columns remain nullable and are never used to infer type.
     """
+    positive_integer(max_rows, "max_rows")
+    finite_scalar(max_gap_s, "max_gap_s", positive=True)
+    if altitude_offset_m is not None:
+        finite_scalar(altitude_offset_m, "altitude_offset_m")
     if altitude_datum not in {"ellipsoid", "orthometric", "barometric"}:
         raise ValueError("Specify altitude datum")
     if altitude_datum != "ellipsoid" and altitude_offset_m is None:
@@ -44,18 +49,8 @@ def load_tracks(
         raise ValueError("Use canonical CSV or Parquet")
     if not REQUIRED.issubset(lazy.collect_schema().names()):
         raise ValueError(f"Required columns: {sorted(REQUIRED)}")
-    west, south, east, north = bbox
-    if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
-        raise ValueError("Invalid bbox; split antimeridian regions explicitly")
-    import datetime as dt
-
-    def utc(value):
-        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            raise ValueError("Timestamps must be timezone-aware")
-        return parsed.astimezone(dt.timezone.utc)
-
-    start, end, origin = utc(start_utc), utc(end_utc), utc(time_origin_utc)
+    west, south, east, north = spatial_bbox(bbox)
+    start, end, origin = [utc_datetime(v) for v in (start_utc, end_utc, time_origin_utc)]
     if end <= start:
         raise ValueError("Invalid UTC window")
     filtered_lazy = lazy.filter(
@@ -100,17 +95,30 @@ def load_tracks(
             group["longitude"].to_numpy(),
             group["altitude_m"].to_numpy() + (altitude_offset_m or 0),
         )
-        for indices in np.split(np.arange(len(stamps)), cuts):
+        for number, indices in enumerate(np.split(np.arange(len(stamps)), cuts), 1):
             if len(indices) >= 3:
                 tracks.append(
                     Trajectory(
-                        stamps[indices], positions[indices], str(group["flight_id"][0]), max_gap_s
+                        stamps[indices],
+                        positions[indices],
+                        str(group["flight_id"][0]),
+                        max_gap_s,
+                        f"{group['flight_id'][0]}/segment-{number}",
                     )
                 )
     return tracks, {
         "rows_in_window": initial,
         "clean_rows": filtered.height,
         "segments": len(tracks),
+        "available_segments": [
+            {
+                "flight_id": f.flight_id,
+                "segment_id": f.segment_id,
+                "start_s": float(f.times[0]),
+                "end_s": float(f.times[-1]),
+            }
+            for f in tracks
+        ],
         "altitude_datum": altitude_datum,
         "altitude_offset_m": altitude_offset_m,
         "warning": "ADS-B coverage is incomplete; aircraft type may be unknown.",
@@ -119,7 +127,11 @@ def load_tracks(
 
 def parquet_window(path, bbox, start_utc, end_utc, limit=1_000_000):
     """Bounded DuckDB query; identifiers are fixed, all user values parameterized."""
-    west, south, east, north = bbox
+    west, south, east, north = spatial_bbox(bbox)
+    positive_integer(limit, "limit")
+    start, end = utc_datetime(start_utc), utc_datetime(end_utc)
+    if end <= start:
+        raise ValueError("Invalid UTC window")
     if limit <= 0 or limit > 1_000_000:
         raise ValueError("Invalid row limit")
     with duckdb.connect() as db:
@@ -129,7 +141,7 @@ def parquet_window(path, bbox, start_utc, end_utc, limit=1_000_000):
                 """SELECT * FROM read_parquet(?) WHERE longitude BETWEEN ? AND ?
           AND latitude BETWEEN ? AND ? AND CAST(timestamp AS TIMESTAMPTZ)
           BETWEEN CAST(? AS TIMESTAMPTZ) AND CAST(? AS TIMESTAMPTZ) LIMIT ?""",
-                params=[str(path), west, east, south, north, start_utc, end_utc, limit],
+                params=[str(path), west, east, south, north, start, end, limit],
             ).to_arrow_table()
         )
 
@@ -141,14 +153,14 @@ class FlightIndex:
         self.flights = list(flights)
         if not self.flights:
             raise ValueError("No flights to index")
-        lower = np.array([f.positions.min(axis=0) for f in flights])
-        upper = np.array([f.positions.max(axis=0) for f in flights])
+        lower = np.array([f.positions.min(axis=0) for f in self.flights])
+        upper = np.array([f.positions.max(axis=0) for f in self.flights])
         self.centers = (lower + upper) / 2
         self.radii = np.linalg.norm(upper - lower, axis=1) / 2
         self.tree = cKDTree(self.centers)
 
     def within_range(self, observer, distance_m):
-        if distance_m <= 0:
+        if not np.isfinite(distance_m) or distance_m <= 0:
             raise ValueError("Distance must be positive")
         indices = self.tree.query_ball_point(observer, distance_m + self.radii.max())
         return [

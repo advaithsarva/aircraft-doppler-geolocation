@@ -87,3 +87,20 @@ def test_independent_white_noise_controls():
         noise = np.random.default_rng(seed).normal(size=4000 * 12)
         spec = spectrogram(noise, 4000, band=(50, 1200))
         assert detect_events(spec) == []
+
+
+def test_video_duration_limit_is_not_silent_truncation(tmp_path):
+    import shutil
+    import subprocess
+
+    if not shutil.which("ffmpeg"):
+        pytest.skip("FFmpeg is optional")
+    wav = tmp_path / "long.wav"
+    sf.write(wav, np.ones(4000 * 3), 4000)
+    video = tmp_path / "long.mkv"
+    subprocess.run(
+        ["ffmpeg", "-nostdin", "-v", "error", "-i", str(wav), "-c:a", "pcm_s16le", str(video)],
+        check=True,
+    )
+    with pytest.raises(ValueError, match="duration"):
+        load_audio(video, max_duration_s=1)

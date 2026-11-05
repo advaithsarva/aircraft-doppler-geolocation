@@ -24,3 +24,30 @@ def test_association_and_conditional_sensitivity():
     sensitivity = perturbation_ensemble(events, flights, area, config, draws=2, seed=4)
     assert len(sensitivity["samples_east_north_offset"]) == 2
     assert "not a calibrated" in sensitivity["interpretation"]
+
+
+def test_ensemble_total_budget_and_input_validation():
+    import pytest
+
+    observer, sources = example_scenario()
+    flights = [f.trajectory() for f in sources]
+    times = np.arange(35.0, 100.0, 2.0)
+    events = [
+        AcousticEvent(times, predict(f, observer, times) * a.f0_hz)
+        for f, a in zip(flights, sources, strict=True)
+    ]
+    area = SearchArea(-500, 500, -500, 500, True)
+    config = SearchConfig(coarse_step_m=500, fine_step_m=100, top_k=2)
+    stopped = perturbation_ensemble(events, flights, area, config, draws=10, total_runtime_s=1e-9)
+    assert not stopped["complete"]
+    assert stopped["attempted_draws"] == 0
+    assert stopped["incomplete_draws"] == 10
+    with pytest.raises(ValueError, match="budget"):
+        perturbation_ensemble(events, flights, area, config, draws=10, total_evaluations=10)
+    with pytest.raises(ValueError, match="finite"):
+        perturbation_ensemble(events, flights, area, config, sound_speed_sigma=np.nan)
+    ranked = rank_assignments(
+        events, flights, area, SearchConfig(coarse_step_m=500, fine_step_m=100, max_evaluations=9)
+    )
+    assert not ranked["exhaustive"]
+    assert ranked["complete_assignments"] == 0

@@ -8,6 +8,7 @@ import numpy as np
 
 from doppler_geo.physics.model import closest_approach
 from doppler_geo.scoring.curves import ComponentScore, curve_score
+from doppler_geo.validation import finite_scalar, positive_integer
 
 
 class Candidate(TypedDict):
@@ -62,6 +63,9 @@ class SearchConfig:
     method: str = "gaussian"
 
     def __post_init__(self):
+        positive_integer(self.top_k, "top_k")
+        positive_integer(self.max_evaluations, "max_evaluations")
+        finite_scalar(self.max_runtime_s, "max_runtime_s", positive=True)
         if (
             not 0 < self.fine_step_m <= self.coarse_step_m
             or self.top_k < 1
@@ -76,6 +80,7 @@ class SearchConfig:
                 [self.coarse_step_m, self.fine_step_m, self.max_runtime_s, self.max_range_m]
             ).all()
             or len(self.f0_bounds) != 2
+            or not np.isfinite(self.f0_bounds).all()
             or not 0 < self.f0_bounds[0] < self.f0_bounds[1]
             or self.method not in {"gaussian", "robust"}
         ):
@@ -107,6 +112,8 @@ def locate(events, flights, area, config=None, elevation=None, progress=None):
             return
         visited.add((round(x, 6), round(y, 6)))
         observer = np.array([x, y, elevation(x, y) if elevation else 0.0])
+        if not np.isfinite(observer).all():
+            raise ValueError("Observer elevation must be finite")
         # CPA is conservative geometry screening; delayed CPA is only a diagnostic,
         # since a ridge midpoint need not correspond to CPA.
         cpas = [closest_approach(f, observer, config.c) for f in flights]

@@ -3,7 +3,6 @@
 import json
 import logging
 import platform
-import resource
 from dataclasses import asdict
 from pathlib import Path
 from time import perf_counter
@@ -13,6 +12,7 @@ import soundfile as sf
 
 from doppler_geo.audio.processing import save_annotations, spectrogram
 from doppler_geo.detection.tracking import track_ridge
+from doppler_geo.memory import peak_rss_mib
 from doppler_geo.search.engine import SearchArea, SearchConfig, locate
 from doppler_geo.synthetic import example_scenario, synthesize
 
@@ -59,7 +59,7 @@ def run_experiment(output, seed=42, snr_db=-5, held_out=False, write_plots=True)
         "sample_rate": fs,
         "search_config": asdict(config),
         "end_to_end_s": perf_counter() - started,
-        "peak_rss_mib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,
+        "peak_rss_mib": peak_rss_mib(),
         "python": platform.python_version(),
         "numpy": np.__version__,
         "flight_identification": "operator-assigned synthetic associations; not measured",

@@ -99,3 +99,22 @@ def test_timezone_and_row_budgets(tmp_path):
             time_origin_utc="2025-01-01T00:00:00Z",
             max_rows=3,
         )
+
+
+def test_segment_identifiers_and_index_generator(tmp_path):
+    path = tmp_path / "segments.csv"
+    data().write_csv(path)
+    tracks, report = load(path)
+    assert [t.segment_id for t in tracks] == ["A/segment-1", "A/segment-2"]
+    assert len(report["available_segments"]) == 2
+    index = FlightIndex(f for f in tracks)
+    assert index.within_range(np.zeros(3), 2000)
+
+
+def test_duckdb_rejects_ambiguous_time_and_invalid_bbox(tmp_path):
+    path = tmp_path / "tracks.parquet"
+    data().write_parquet(path)
+    with pytest.raises(ValueError, match="timezone"):
+        parquet_window(path, (-1, 51, 1, 52), "2025-01-01T00:00:00", "2025-01-01T00:02:00Z")
+    with pytest.raises(ValueError, match="bbox"):
+        parquet_window(path, (1, 51, -1, 52), "2025-01-01T00:00:00Z", "2025-01-01T00:02:00Z")

@@ -5,8 +5,10 @@ from typing import TypedDict
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
+from scipy.optimize import brentq
 
 from doppler_geo.physics.model import predict
+from doppler_geo.validation import positive_integer
 
 
 class ComponentScore(TypedDict):
@@ -24,6 +26,7 @@ class AcousticEvent:
     label: str = "unassigned"
 
     def __post_init__(self):
+        positive_integer(self.harmonic, "harmonic")
         self.times = np.asarray(self.times, dtype=float)
         self.frequencies = np.asarray(self.frequencies, dtype=float)
         if (
@@ -45,18 +48,40 @@ class AcousticEvent:
             "times": self.times.tolist(),
             "frequencies": self.frequencies.tolist(),
             "sigma_hz": self.sigma_hz,
-            "harmonic": self.harmonic,
+            "harmonic": int(self.harmonic),
             "label": self.label,
         }
 
 
 def curve_score(
     event, flight, observer, offset_s=0, c=343.0, f0_bounds=(40.0, 1000.0), method="gaussian"
-):
+) -> ComponentScore:
+    if (
+        len(f0_bounds) != 2
+        or not np.isfinite(f0_bounds).all()
+        or not 0 < f0_bounds[0] < f0_bounds[1]
+    ):
+        raise ValueError("Invalid source-frequency bounds")
+    if method not in {"gaussian", "robust"}:
+        raise ValueError("Unknown curve scoring method")
     ratio = predict(flight, observer, event.times + offset_s, c) * event.harmonic
     if not np.isfinite(ratio).all():
         return {"loss": float("inf"), "f0_hz": None, "rmse_hz": None}
     f0 = float(np.clip(np.dot(ratio, event.frequencies) / np.dot(ratio, ratio), *f0_bounds))
+    if method == "robust":
+        # Pseudo-Huber loss is convex in f0. Solve its monotonic derivative for the
+        # same objective used to rank candidates, rather than fitting outliers by LS.
+        def derivative(frequency):
+            r = (frequency * ratio - event.frequencies) / event.sigma_hz
+            return float(np.sum(ratio * r / np.hypot(1, r)))
+
+        lower, upper = f0_bounds
+        if derivative(lower) >= 0:
+            f0 = float(lower)
+        elif derivative(upper) <= 0:
+            f0 = float(upper)
+        else:
+            f0 = float(brentq(derivative, lower, upper))
     residual = (event.frequencies - f0 * ratio) / event.sigma_hz
     if method == "gaussian":
         loss = float(np.mean(residual**2))

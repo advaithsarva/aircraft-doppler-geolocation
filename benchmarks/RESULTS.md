@@ -41,3 +41,10 @@ that ran the complete synthetic workflow and a real FFmpeg extraction check. Ruf
 Ruff format checks and mypy passed. A third-party anyio/pytest deprecation warning was
 emitted; no tests were hidden or skipped in that run. CI is configured for Python 3.11
 and 3.12; the local run used 3.12, and remote CI has not yet been verified.
+
+## Review follow-up
+
+The [follow-up measurements](review-results.json) use NumPy 2.5.4/SciPy 1.18.1 after
+[the review fixes](../docs/REVIEW_FIXES.md). All six audio cases retain 6.25–12.5 m error.
+Consistent robust source-frequency profiling improves the frequency-interference case
+from 31.25 m to 8.84 m. The original measurements above are retained unchanged.

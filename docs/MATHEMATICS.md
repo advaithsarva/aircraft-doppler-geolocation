@@ -76,8 +76,8 @@ L_joint = mean_i L_i
 Events are weighted equally so an oversampled annotation does not dominate merely by
 having more points. This corresponds to a chosen composite error model, not a claim that
 correlated STFT bins are independent. The robust loss replaces r² by 2(sqrt(1+r²)-1),
-while profiling f0 still uses least squares; it is an approximate robust score, not an exact
-robust maximum-likelihood estimator. Harmonic order is an explicit hypothesis; multiple
+and profiles f0 against that same convex objective by solving its derivative within the
+configured frequency bounds. Outlying frequencies therefore do not set f0 by least squares. Harmonic order is an explicit hypothesis; multiple
 harmonics from one source should not be treated as independent aircraft.
 
 Every event uses the same Δ grid. No event can independently slide to improve a match.

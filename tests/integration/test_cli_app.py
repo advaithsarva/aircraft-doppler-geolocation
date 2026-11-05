@@ -43,10 +43,10 @@ def test_local_config_pipeline(tmp_path):
     ]
     save_annotations(annotations_path, events)
     config = {
-        "tracks": str(tracks_path),
-        "annotations": str(annotations_path),
+        "tracks": tracks_path.name,
+        "annotations": annotations_path.name,
         "frame": {"latitude": 51.5, "longitude": -0.1},
-        "flight_ids": ["F0", "F1"],
+        "flight_ids": ["F0/segment-1", "F1/segment-1"],
         "area": {"xmin": -500, "xmax": 500, "ymin": -500, "ymax": 500, "authorized": True},
         "ingestion": {
             "bbox": [-2, 50, 2, 53],
@@ -56,7 +56,7 @@ def test_local_config_pipeline(tmp_path):
             "altitude_datum": "ellipsoid",
         },
         "search": {"coarse_step_m": 250, "fine_step_m": 25},
-        "output": str(tmp_path / "new-output" / "result.json"),
+        "output": "new-output/result.json",
     }
     path = tmp_path / "config.json"
     path.write_text(json.dumps(config))
@@ -66,7 +66,14 @@ def test_local_config_pipeline(tmp_path):
     assert 51 < best["latitude"] < 52
     assert len(result["curve_diagnostics"]) == 2
     assert len(result["provenance"]["config_sha256"]) == 64
+    assert len(result["provenance"]["tracks_sha256"]) == 1
+    assert result["flight_visualization"][0]["segment_id"] == "F0/segment-1"
     assert (tmp_path / "new-output" / "result.json").exists()
+    config["output"] = "tracks.parquet"
+    path.write_text(json.dumps(config))
+    with pytest.raises(ValueError, match="overwrite"):
+        run_config(path)
+    config["output"] = "new-output/result.json"
     config["area"]["authorized"] = False
     path.write_text(json.dumps(config))
     with pytest.raises(ValueError, match="authorize"):

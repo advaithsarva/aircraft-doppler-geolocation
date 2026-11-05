@@ -61,7 +61,8 @@ coarse candidates. It can miss a narrow distant mode; this is an approximation, 
 proof of the global optimum. Parameter sweeps and multiple coarse resolutions are needed
 for demanding experiments.
 
-Frequency tracking is O(F²T) with limited frequency windows. Do not run wideband ridge
+Frequency tracking is O(FKT), where K is the bounded predecessor-band width; a work
+budget rejects oversized tracking requests before constructing transition arrays. Do not run wideband ridge
 tracking on hour-long audio at fine resolution. Audio defaults to a 600 s duration cap.
 CPU NumPy/SciPy profiling comes before Numba/GPU work. No GPU dependency is needed.
 

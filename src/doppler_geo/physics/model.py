@@ -6,6 +6,8 @@ import numpy as np
 from scipy.interpolate import PchipInterpolator
 from scipy.optimize import minimize_scalar
 
+from doppler_geo.validation import finite_scalar
+
 
 @dataclass
 class Trajectory:
@@ -13,10 +15,12 @@ class Trajectory:
     positions: np.ndarray
     flight_id: str = "unknown"
     max_gap_s: float = 30.0
+    segment_id: str | None = None
 
     def __post_init__(self):
-        self.times = np.asarray(self.times, dtype=float)
-        self.positions = np.asarray(self.positions, dtype=float)
+        finite_scalar(self.max_gap_s, "max_gap_s", positive=True)
+        self.times = np.array(self.times, dtype=float, copy=True)
+        self.positions = np.array(self.positions, dtype=float, copy=True)
         if (
             self.times.ndim != 1
             or len(self.times) < 3
@@ -30,6 +34,8 @@ class Trajectory:
             raise ValueError("Trajectory gap exceeds interpolation limit; segment the flight")
         self._position = PchipInterpolator(self.times, self.positions, axis=0, extrapolate=False)
         self._velocity = self._position.derivative()
+        self.times.setflags(write=False)
+        self.positions.setflags(write=False)
 
     def position(self, times):
         return self._position(times)
@@ -46,10 +52,14 @@ def sound_speed(temperature_c=15.0):
 
 
 def propagate(flight: Trajectory, observer, emission_times=None, c=343.0):
-    if not np.isfinite(c) or c <= 0:
-        raise ValueError("Sound speed must be positive")
+    finite_scalar(c, "Sound speed", positive=True)
     te = flight.times if emission_times is None else np.asarray(emission_times, dtype=float)
-    r = flight.position(te) - np.asarray(observer, dtype=float)
+    if te.ndim != 1 or not len(te) or not np.isfinite(te).all():
+        raise ValueError("Emission samples must be a nonempty finite one-dimensional array")
+    observer = np.asarray(observer, dtype=float)
+    if observer.shape != (3,) or not np.isfinite(observer).all():
+        raise ValueError("Observer must be a finite ENU vector with three coordinates")
+    r = flight.position(te) - observer
     v = flight.velocity(te)
     d = np.linalg.norm(r, axis=-1)
     if not np.isfinite(r).all() or np.any(d <= 0):
@@ -66,8 +76,9 @@ def propagate(flight: Trajectory, observer, emission_times=None, c=343.0):
 
 def predict(flight, observer, arrival_times, c=343.0, step_s=0.25):
     """Return frequency multiplier at arrival times; NaN outside observed flight support."""
-    if step_s <= 0:
-        raise ValueError("step_s must be positive")
+    finite_scalar(step_s, "step_s", positive=True)
+    if np.ptp(flight.times) / step_s > 1_000_000:
+        raise ValueError("Propagation sampling budget exceeded")
     te = np.linspace(
         flight.times[0], flight.times[-1], max(3, int(np.ceil(np.ptp(flight.times) / step_s)) + 1)
     )
@@ -77,12 +88,14 @@ def predict(flight, observer, arrival_times, c=343.0, step_s=0.25):
 
 def closest_approach(flight, observer, c=343.0):
     """Global sampled screening then bounded refinement of each local minimum."""
+    finite_scalar(c, "Sound speed", positive=True)
     grid = np.linspace(flight.times[0], flight.times[-1], max(3, int(np.ptp(flight.times)) + 1))
     dist = np.linalg.norm(flight.position(grid) - observer, axis=1)
     best = (float(dist[0]), float(grid[0]))
     if dist[-1] < best[0]:
         best = (float(dist[-1]), float(grid[-1]))
-    for i in np.flatnonzero((dist[1:-1] <= dist[:-2]) & (dist[1:-1] <= dist[2:])) + 1:
+    for index in np.flatnonzero((dist[1:-1] <= dist[:-2]) & (dist[1:-1] <= dist[2:])):
+        i = int(index) + 1
         result = minimize_scalar(
             lambda t: np.linalg.norm(flight.position(t) - observer),
             bounds=(grid[i - 1], grid[i + 1]),

@@ -1,0 +1,334 @@
+{
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "processor": ""
+  },
+  "audio_recovery_cases": [
+    {
+      "case": "baseline_0_11",
+      "seed": 11,
+      "snr_db": 0,
+      "held_out": false,
+      "truth_observer_enu_m": [
+        350.0,
+        -250.0,
+        0.0
+      ],
+      "localization_error_m": 6.25,
+      "ridge_contrast": [
+        1019.8884698057884,
+        856.6119390206953
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.676217422000036,
+      "peak_rss_mib": 322.19921875,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.3458730039999409,
+      "frequency_rmse_hz": [
+        0.08739180730426385,
+        0.15008534324940961
+      ]
+    },
+    {
+      "case": "baseline_-5_42",
+      "seed": 42,
+      "snr_db": -5,
+      "held_out": false,
+      "truth_observer_enu_m": [
+        350.0,
+        -250.0,
+        0.0
+      ],
+      "localization_error_m": 6.25,
+      "ridge_contrast": [
+        336.16017951523764,
+        266.0056519615085
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.6275646369999777,
+      "peak_rss_mib": 327.15625,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.3392269529999794,
+      "frequency_rmse_hz": [
+        0.115383364053869,
+        0.17101572853944183
+      ]
+    },
+    {
+      "case": "baseline_-15_73",
+      "seed": 73,
+      "snr_db": -15,
+      "held_out": false,
+      "truth_observer_enu_m": [
+        350.0,
+        -250.0,
+        0.0
+      ],
+      "localization_error_m": 6.25,
+      "ridge_contrast": [
+        35.408821920729785,
+        30.475104153827704
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.607478244000049,
+      "peak_rss_mib": 327.84765625,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.3406155789998593,
+      "frequency_rmse_hz": [
+        0.25183155853676337,
+        0.7913074926085408
+      ]
+    },
+    {
+      "case": "held-out_0_19",
+      "seed": 19,
+      "snr_db": 0,
+      "held_out": true,
+      "truth_observer_enu_m": [
+        -225.0,
+        375.0,
+        0.0
+      ],
+      "localization_error_m": 6.25,
+      "ridge_contrast": [
+        1222.1260866630575,
+        822.1324969200282
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.5723862729998928,
+      "peak_rss_mib": 327.90625,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.30264921299999514,
+      "frequency_rmse_hz": [
+        0.0797414073401788,
+        0.15964144877215986
+      ]
+    },
+    {
+      "case": "held-out_-5_73",
+      "seed": 73,
+      "snr_db": -5,
+      "held_out": true,
+      "truth_observer_enu_m": [
+        -225.0,
+        375.0,
+        0.0
+      ],
+      "localization_error_m": 6.25,
+      "ridge_contrast": [
+        392.5895759506388,
+        263.25157943388615
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.3795724220001375,
+      "peak_rss_mib": 327.90625,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.3045188060000328,
+      "frequency_rmse_hz": [
+        0.09682239002899544,
+        0.1916548773436513
+      ]
+    },
+    {
+      "case": "held-out_-15_91",
+      "seed": 91,
+      "snr_db": -15,
+      "held_out": true,
+      "truth_observer_enu_m": [
+        -225.0,
+        375.0,
+        0.0
+      ],
+      "localization_error_m": 12.5,
+      "ridge_contrast": [
+        43.30637334695773,
+        27.620275129204163
+      ],
+      "sample_rate": 8000,
+      "search_config": {
+        "coarse_step_m": 500,
+        "fine_step_m": 25,
+        "top_k": 4,
+        "max_evaluations": 10000,
+        "max_runtime_s": 120.0,
+        "max_range_m": 25000.0,
+        "offsets_s": [
+          0.0
+        ],
+        "c": 343.0,
+        "f0_bounds": [
+          40.0,
+          1000.0
+        ],
+        "method": "gaussian"
+      },
+      "end_to_end_s": 2.408131798000113,
+      "peak_rss_mib": 327.90625,
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "flight_identification": "operator-assigned synthetic associations; not measured",
+      "evaluations": 399,
+      "search_s": 0.3122592029999396,
+      "frequency_rmse_hz": [
+        0.24431312548332024,
+        2.9865806103421693
+      ]
+    }
+  ],
+  "diagnostic_cases": [
+    {
+      "case": "missing_samples",
+      "localization_error_m": 6.25,
+      "offset_s": 0.0,
+      "loss": 0.005763270902566781,
+      "runtime_s": 0.2994518450000214,
+      "evaluations": 399
+    },
+    {
+      "case": "incorrect_altitude_plus_200m",
+      "localization_error_m": 224.39153838770304,
+      "offset_s": 0.0,
+      "loss": 0.7464900722518731,
+      "runtime_s": 0.30912899999998444,
+      "evaluations": 399
+    },
+    {
+      "case": "shared_recording_offset",
+      "localization_error_m": 6.25,
+      "offset_s": 2.5,
+      "loss": 0.005763270902567117,
+      "runtime_s": 0.8641402590001235,
+      "evaluations": 1620
+    },
+    {
+      "case": "frequency_interference",
+      "localization_error_m": 8.838834764831844,
+      "offset_s": 0.0,
+      "loss": 2.5969358424545383,
+      "runtime_s": 0.4690892379999241,
+      "evaluations": 399
+    }
+  ],
+  "association": {
+    "selected_ids": [
+      "flight-1",
+      "flight-2"
+    ],
+    "truth_ids": [
+      "flight-1",
+      "flight-2"
+    ],
+    "correct": true,
+    "scope": "One synthetic two-flight permutation case, not population accuracy"
+  },
+  "negative_controls": {
+    "noise_only_trials": 10,
+    "trials_with_tonal_proposals": 0,
+    "proposal_rate": 0.0,
+    "scope": "White-noise tonal proposals only; not a geolocation false-positive rate"
+  },
+  "held_out_ridge_rmse_hz_at_truth": [
+    0.08020054843885126,
+    0.1291578416304948
+  ]
+}

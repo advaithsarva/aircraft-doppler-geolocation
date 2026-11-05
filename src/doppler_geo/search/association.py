@@ -6,6 +6,7 @@ from math import perm
 from time import monotonic
 
 from doppler_geo.search.engine import SearchConfig, locate
+from doppler_geo.validation import finite_scalar, positive_integer
 
 
 def rank_assignments(
@@ -22,6 +23,9 @@ def rank_assignments(
     This does not download flight archives or infer aircraft types. Each event is assigned
     a distinct trajectory; harmonic ridges from one aircraft should first be consolidated.
     """
+    positive_integer(max_assignments, "max_assignments")
+    positive_integer(total_evaluations, "total_evaluations")
+    finite_scalar(total_runtime_s, "total_runtime_s", positive=True)
     if not 1 <= max_assignments <= 100 or len(flights) < len(events) or not events:
         raise ValueError("Invalid local association problem or assignment budget")
     count = perm(len(flights), len(events))
@@ -34,6 +38,8 @@ def rank_assignments(
     )
     started = monotonic()
     results = []
+    searched = 0
+    complete_searches = 0
     for selected in islice(permutations(flights, len(events)), attempts):
         remaining = total_runtime_s - (monotonic() - started)
         if remaining <= 0:
@@ -44,6 +50,8 @@ def rank_assignments(
             area,
             replace(per_assignment, max_runtime_s=min(config.max_runtime_s, remaining)),
         )
+        searched += 1
+        complete_searches += bool(result["complete"])
         if result["candidates"]:
             results.append(
                 {
@@ -56,6 +64,8 @@ def rank_assignments(
     return {
         "assignments": results,
         "possible_assignments": count,
-        "exhaustive": count <= max_assignments and len(results) == count,
+        "exhaustive": complete_searches == count,
+        "searched_assignments": searched,
+        "complete_assignments": complete_searches,
         "warning": "Assignment ranking is conditional on the supplied local flight shortlist.",
     }
