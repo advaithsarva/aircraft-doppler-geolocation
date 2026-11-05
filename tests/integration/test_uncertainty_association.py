@@ -26,7 +26,7 @@ def test_association_and_conditional_sensitivity():
     assert "not a calibrated" in sensitivity["interpretation"]
 
 
-def test_ensemble_total_budget_and_input_validation():
+def test_ensemble_total_budget_and_input_validation(monkeypatch):
     import pytest
 
     observer, sources = example_scenario()
@@ -38,7 +38,11 @@ def test_ensemble_total_budget_and_input_validation():
     ]
     area = SearchArea(-500, 500, -500, 500, True)
     config = SearchConfig(coarse_step_m=500, fine_step_m=100, top_k=2)
-    stopped = perturbation_ensemble(events, flights, area, config, draws=10, total_runtime_s=1e-9)
+    # Deadline behavior must not depend on the operating system's timer resolution.
+    with monkeypatch.context() as clock_patch:
+        ticks = iter([0.0, 2.0, 2.0])
+        clock_patch.setattr("doppler_geo.search.uncertainty.monotonic", lambda: next(ticks))
+        stopped = perturbation_ensemble(events, flights, area, config, draws=10, total_runtime_s=1)
     assert not stopped["complete"]
     assert stopped["attempted_draws"] == 0
     assert stopped["incomplete_draws"] == 10
