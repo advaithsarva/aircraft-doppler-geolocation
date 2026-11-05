@@ -1,0 +1,23 @@
+name: Scientific validation
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e '.[dev,app]'
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy src/doppler_geo
+      - run: pytest -q
+      - run: doppler-geo demo --output outputs/ci --held-out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ matrix.python-version }}
+          path: outputs/ci/

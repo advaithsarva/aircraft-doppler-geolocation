@@ -1,0 +1,15 @@
+# Tested direct versions on Python 3.12; not a full platform lockfile.
+numpy==2.3.5
+scipy==1.17.0
+pyproj==3.8.0
+soundfile==0.14.0
+polars==2.1.0
+pyarrow==26.0.1
+duckdb==2.0.0
+plotly==7.1.0
+streamlit==1.66.1
+rasterio==1.5.2
+pytest==9.2.0
+hypothesis==6.170.14
+ruff==0.17.3
+mypy==2.4.1
