@@ -13,7 +13,7 @@ def positive_integer(value, name):
 
 
 def finite_scalar(value, name, *, positive=False, nonnegative=False):
-    if isinstance(value, bool) or not isinstance(value, Real) or not np.isfinite(value):
+    if isinstance(value, bool) or not isinstance(value, Real) or not np.isfinite(float(value)):
         raise ValueError(f"{name} must be finite")
     if (positive and value <= 0) or (nonnegative and value < 0):
         raise ValueError(f"{name} has an invalid sign")
